@@ -46,8 +46,8 @@ def rotation(angle_x, angle_y, angle_z):
         [0, 0, 1, 0],
         [0, 0, 0, 1]
     ])
-    m_y = np.dot(m_x, m_y)
-    return np.dot(m_y, m_z)
+    m_y = np.dot(m_z, m_y)
+    return np.dot(m_y, m_x)
 
 def scale(v):
     m = np.array([
@@ -67,12 +67,12 @@ def viewport(x, y, n, f, w, h):
     ])
     return m
 
-def translation(v):
+def translation(x, y, z=0):
     m = np.array([
-        [1, 0, 0, v[0]],
-        [0, 1, 0, v[1]],
-        [0, 0, 1, v[2]],
-        [0, 0, 0, 1]
+        [1, 0, 0, 0],
+        [0, 1, 0, 0],
+        [0, 0, 1, 0],
+        [x, y, z, 1]
     ])
     return m
 
@@ -82,36 +82,63 @@ def main():
 
     pygame.init()
     screen = pygame.display.set_mode((width, height))
-    box = Box()
+    color = (0.40, 0.40, 0/40)
+    box1 = Box(100, 10, 200, 100, 100)
+    box2 = Box(-100, 10, 200, 100, 100)
 
     roll = 0
     pitch = 0
     yaw = 0
+    x_offset = 0
+    y_offset = 0
+    z_offset = 0
+    epsilon = 0.01
+    keys = {}
+    vp = viewport(0, 0, 0.1, 100, width, height)
     while True:
-        screen.fill((0, 0, 0))
-        vp = viewport(0, 0, 0.1, 100, width, height)
-        projection = perspective_projection(160, 0.1, 100, width, height)
+        screen.fill((255, 255, 255))
         event = pygame.event.poll()
-        if event.type == KEYDOWN and event.key == K_LEFT:
-            pitch -= 5
-        if event.type == KEYDOWN and event.key == K_RIGHT:
-            pitch += 5
-        if event.type == KEYDOWN and event.key == K_UP:
-            roll += 5
-        if event.type == KEYDOWN and event.key == K_DOWN:
-            roll -= 5
-        mat = rotation(roll, pitch, yaw).dot(projection)
+        if event.type == KEYDOWN:
+            keys[event.key] = True
+        elif event.type == KEYUP:
+            keys[event.key] = False
+        if keys.get(K_a, False):
+            x_offset -= 5
+        if keys.get(K_d, False):
+            x_offset += 5
+        if keys.get(K_u, False):
+            y_offset += 2
+        if keys.get(K_j, False):
+            y_offset -= 2
+        if keys.get(K_s, False):
+            z_offset -= 2
+        if keys.get(K_w, False):
+            z_offset += 2
+        if keys.get(K_LEFT, False):
+            yaw -= 2
+        if keys.get(K_RIGHT, False):
+            yaw += 2
+        if keys.get(K_UP, False):
+            pitch += 2
+        if keys.get(K_DOWN, False):
+            pitch -= 2
+        projection = perspective_projection(80, 0.1, 100, width, height)
+        t = translation(-x_offset, -y_offset, -z_offset)
+        mat = t.dot(rotation(-pitch, -yaw, -roll))
+        mat = mat.dot(projection)
         mat = mat.dot(vp)
-        print('pitch: {0}, roll: {1}\n\n'.format(pitch, roll))
-        for edge in box.EDGES:
-            # przekształcenia
-            p0 = box.POINTS[edge[0]].dot(mat)
-            p1 = box.POINTS[edge[1]].dot(mat)
-            # normalizacja
-            p0 = p0 / p0[3]
-            p1 = p1 / p1[3]
-            # rysowanie
-            pygame.draw.line(screen, 200, (p0[0], p0[1]), (p1[0], p1[1]))
+        for box in (box1, box2):
+            for edge in box.EDGES:
+                # przekształcenia
+                p0 = box.POINTS[edge[0]].dot(mat)
+                p1 = box.POINTS[edge[1]].dot(mat)
+                # normalizacja
+                if p0[3] < epsilon or p1[3] < epsilon:
+                    continue
+                p0 = p0 / p0[3]
+                p1 = p1 / p1[3]
+                # rysowanie
+                pygame.draw.aaline(screen, color, (p0[0], p0[1]), (p1[0], p1[1]))
         if event.type == QUIT or (event.type == KEYDOWN and event.key == K_ESCAPE):
             break
         pygame.display.flip()

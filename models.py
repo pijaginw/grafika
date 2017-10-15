@@ -4,16 +4,16 @@ import numpy as np
 
 
 class Box():
-    def __init__(self):
+    def __init__(self, x, y, z, a, h):
         self.POINTS = (
-            np.array([100, 100, 100, 1]),
-            np.array([400, 100, 100, 1]),
-            np.array([400, 100, 400, 1]),
-            np.array([100, 100, 400, 1]),
-            np.array([100, 400, 100, 1]),
-            np.array([400, 400, 100, 1]),
-            np.array([400, 400, 400, 1]),
-            np.array([100, 400, 400, 1])
+            np.array([x-a/2, y, z-a/2, 1]),
+            np.array([x+a/2, y, z-a/2, 1]),
+            np.array([x+a/2, y, z+a/2, 1]),
+            np.array([x-a/2, y, z+a/2, 1]),
+            np.array([x-a/2, y+h, z-a/2, 1]),
+            np.array([x+a/2, y+h, z-a/2, 1]),
+            np.array([x+a/2, y+h, z+a/2, 1]),
+            np.array([x-a/2, y+h, z+a/2, 1])
         )
 
         self.EDGES = [
