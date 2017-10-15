@@ -5,34 +5,7 @@ from time import sleep
 import pygame
 from pygame.locals import *
 import math
-
-class Box():
-    def __init__(self):
-        self.POINTS = (
-            np.array([200, 100, 200, 1]),
-            np.array([200, 100, 200, 1]),
-            np.array([300, 100, 100, 1]),
-            np.array([200, 100, 100, 1]),
-            np.array([200, 200, 200, 1]),
-            np.array([300, 200, 200, 1]),
-            np.array([300, 200, 100, 1]),
-            np.array([200, 200, 100, 1])
-        )
-
-        self.EDGES = [
-            (0, 1),
-            (1, 2),
-            (2, 3),
-            (3, 0),
-            (0, 4),
-            (4, 5),
-            (5, 1),
-            (5, 6),
-            (6, 7),
-            (7, 4),
-            (6, 2),
-            (7, 3)
-        ]
+from models import Box
 
 def perspective_projection(fov, zNear, zFar, w, h):
     ar = w / h
@@ -49,37 +22,34 @@ def perspective_projection(fov, zNear, zFar, w, h):
     ])
     return m
 
-def rotation_x(angle):
-    angle = math.radians(angle)
-    m = np.array([
+def rotation(angle_x, angle_y, angle_z):
+    angle_x = math.radians(angle_x)
+    m_x = np.array([
         [1, 0, 0, 0],
-        [0, math.cos(angle), -math.sin(angle), 0],
-        [0, math.sin(angle), math.cos(angle), 0],
+        [0, math.cos(angle_x), -math.sin(angle_x), 0],
+        [0, math.sin(angle_x), math.cos(angle_x), 0],
         [0, 0, 0, 1]
     ])
-    return m
 
-def rotation_y(angle):
-    angle = math.radians(angle)
-    m = np.array([
-        [math.cos(angle), 0, math.sin(angle), 0],
+    angle_y = math.radians(angle_y)
+    m_y = np.array([
+        [math.cos(angle_y), 0, math.sin(angle_y), 0],
         [0, 1, 0, 0],
-        [-math.sin(angle), 0, math.cos(angle), 0],
+        [-math.sin(angle_y), 0, math.cos(angle_y), 0],
         [0, 0, 0, 1]
     ])
-    return m
 
-def rotation_z(angle):
-    angle = math.radians(angle)
-    m = np.array([
-        [math.cos(angle), -math.sin(angle), 0, 0],
-        [math.sin(angle), math.cos(angle), 0, 0],
+    angle_z = math.radians(angle_z)
+    m_z = np.array([
+        [math.cos(angle_z), -math.sin(angle_z), 0, 0],
+        [math.sin(angle_z), math.cos(angle_z), 0, 0],
         [0, 0, 1, 0],
         [0, 0, 0, 1]
     ])
-    return m
+    m_y = np.dot(m_x, m_y)
+    return np.dot(m_y, m_z)
 
-def scale(p, v):
+def scale(v):
     m = np.array([
         [v[0],    0,    0,    0],
         [0,    v[1],    0,    0],
@@ -97,6 +67,15 @@ def viewport(x, y, n, f, w, h):
     ])
     return m
 
+def translation(v):
+    m = np.array([
+        [1, 0, 0, v[0]],
+        [0, 1, 0, v[1]],
+        [0, 0, 1, v[2]],
+        [0, 0, 0, 1]
+    ])
+    return m
+
 def main():
     width = 900
     height = 700
@@ -105,10 +84,25 @@ def main():
     screen = pygame.display.set_mode((width, height))
     box = Box()
 
+    roll = 0
+    pitch = 0
+    yaw = 0
     while True:
+        screen.fill((0, 0, 0))
         vp = viewport(0, 0, 0.1, 100, width, height)
         projection = perspective_projection(160, 0.1, 100, width, height)
-        mat = projection.dot(vp)
+        event = pygame.event.poll()
+        if event.type == KEYDOWN and event.key == K_LEFT:
+            pitch -= 5
+        if event.type == KEYDOWN and event.key == K_RIGHT:
+            pitch += 5
+        if event.type == KEYDOWN and event.key == K_UP:
+            roll += 5
+        if event.type == KEYDOWN and event.key == K_DOWN:
+            roll -= 5
+        mat = rotation(roll, pitch, yaw).dot(projection)
+        mat = mat.dot(vp)
+        print('pitch: {0}, roll: {1}\n\n'.format(pitch, roll))
         for edge in box.EDGES:
             # przekształcenia
             p0 = box.POINTS[edge[0]].dot(mat)
@@ -118,8 +112,6 @@ def main():
             p1 = p1 / p1[3]
             # rysowanie
             pygame.draw.line(screen, 200, (p0[0], p0[1]), (p1[0], p1[1]))
-            pygame.time.delay(25)
-        event = pygame.event.poll()
         if event.type == QUIT or (event.type == KEYDOWN and event.key == K_ESCAPE):
             break
         pygame.display.flip()
