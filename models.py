@@ -31,9 +31,18 @@ class Box():
             (7, 3)
         ]
 
-class Line():
-    def __init__(self):
+class Rectangle():
+    def __init__(self, x, z, a, b):
         self.POINTS = (
-            np.array([80, 80, 80, 1]),
-            np.array([80, 80, 400, 1])
+            np.array([x-a/2, 0, z, 1]),
+            np.array([x-a/2, 0, z+b, 1]),
+            np.array([x+a/2, 0, z+b, 1]),
+            np.array([x+a/2, 0, z, 1])
         )
+
+        self.EDGES = [
+            (0, 1),
+            (1, 2),
+            (2, 3),
+            (3, 0)
+        ]

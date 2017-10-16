@@ -5,7 +5,7 @@ from time import sleep
 import pygame
 from pygame.locals import *
 import math
-from models import Box
+from models import Box, Rectangle
 import sys
 
 def perspective_projection(fov, zNear, zFar, w, h):
@@ -84,8 +84,11 @@ def main():
     pygame.init()
     screen = pygame.display.set_mode((width, height))
     color = (0.40, 0.40, 0/40)
-    box1 = Box(100, 10, 200, 100, 100)
-    box2 = Box(-100, 10, 200, 100, 100)
+    box1 = Box(100, 10, 200, 80, 90)
+    box2 = Box(-100, 10, 200, 85, 90)
+    box3 = Box(100, 10, 300, 100, 100)
+    box4 = Box(-100, 10, 300, 100, 130)
+    rect = Rectangle(0, 100, 80, 300)
 
     roll = 0
     pitch = 0
@@ -94,7 +97,7 @@ def main():
     y_offset = 0
     z_offset = 0
     fov = 80
-    epsilon = 0.01
+    epsilon = 0.005
     keys = {}
     vp = viewport(0, 0, 0.1, 100, width, height)
     while True:
@@ -122,11 +125,11 @@ def main():
         if keys.get(K_RIGHT, False):
             yaw += 2
         if keys.get(K_UP, False) and keys.get(K_LCTRL, False):
-            fov += 1
+            fov -= 1
         elif keys.get(K_UP, False):
             pitch += 2
         if keys.get(K_DOWN, False) and keys.get(K_LCTRL, False):
-            fov -= 1
+            fov += 1
         elif keys.get(K_DOWN, False):
             pitch -= 2
         projection = perspective_projection(fov, 0.1, 100, width, height)
@@ -134,7 +137,7 @@ def main():
         mat = t.dot(rotation(-pitch, -yaw, -roll))
         mat = mat.dot(projection)
         mat = mat.dot(vp)
-        for box in (box1, box2):
+        for box in (box1, box2, box3, box4, rect):
             for edge in box.EDGES:
                 # transformation
                 p0 = box.POINTS[edge[0]].dot(mat)
