@@ -6,6 +6,7 @@ import pygame
 from pygame.locals import *
 import math
 from models import Box
+import sys
 
 def perspective_projection(fov, zNear, zFar, w, h):
     ar = w / h
@@ -92,11 +93,13 @@ def main():
     x_offset = 0
     y_offset = 0
     z_offset = 0
+    fov = 80
     epsilon = 0.01
     keys = {}
     vp = viewport(0, 0, 0.1, 100, width, height)
     while True:
         screen.fill((255, 255, 255))
+        # controls
         event = pygame.event.poll()
         if event.type == KEYDOWN:
             keys[event.key] = True
@@ -118,29 +121,35 @@ def main():
             yaw -= 2
         if keys.get(K_RIGHT, False):
             yaw += 2
-        if keys.get(K_UP, False):
+        if keys.get(K_UP, False) and keys.get(K_LCTRL, False):
+            fov += 1
+        elif keys.get(K_UP, False):
             pitch += 2
-        if keys.get(K_DOWN, False):
+        if keys.get(K_DOWN, False) and keys.get(K_LCTRL, False):
+            fov -= 1
+        elif keys.get(K_DOWN, False):
             pitch -= 2
-        projection = perspective_projection(80, 0.1, 100, width, height)
+        projection = perspective_projection(fov, 0.1, 100, width, height)
         t = translation(-x_offset, -y_offset, -z_offset)
         mat = t.dot(rotation(-pitch, -yaw, -roll))
         mat = mat.dot(projection)
         mat = mat.dot(vp)
         for box in (box1, box2):
             for edge in box.EDGES:
-                # przekształcenia
+                # transformation
                 p0 = box.POINTS[edge[0]].dot(mat)
                 p1 = box.POINTS[edge[1]].dot(mat)
-                # normalizacja
+                # normalization
                 if p0[3] < epsilon or p1[3] < epsilon:
                     continue
                 p0 = p0 / p0[3]
                 p1 = p1 / p1[3]
-                # rysowanie
+                # drawing
                 pygame.draw.aaline(screen, color, (p0[0], p0[1]), (p1[0], p1[1]))
+        # exit
         if event.type == QUIT or (event.type == KEYDOWN and event.key == K_ESCAPE):
-            break
+            pygame.quit()
+            sys.exit()
         pygame.display.flip()
         pygame.time.delay(25)
 
