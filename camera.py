@@ -137,6 +137,15 @@ def main():
         mat = t.dot(rotation(-pitch, -yaw, -roll))
         mat = mat.dot(projection)
         mat = mat.dot(vp)
+
+        font = pygame.font.SysFont("arial", 28)
+        text = font.render(
+            "FOV= {0}, Pitch= {1}, Yaw= {2}, Roll= {3}, X= {4}, Y={5}, Z={6}".format(
+                fov, pitch, yaw, roll, x_offset, y_offset, z_offset),
+            True,
+            (0, 128, 150)
+        )
+
         for box in (box1, box2, box3, box4, rect):
             for edge in box.EDGES:
                 # transformation
@@ -149,6 +158,7 @@ def main():
                 p1 = p1 / p1[3]
                 # drawing
                 pygame.draw.aaline(screen, color, (p0[0], p0[1]), (p1[0], p1[1]))
+                screen.blit(text, (420 - text.get_width() // 2, 10 - text.get_height() // 2))
         # exit
         if event.type == QUIT or (event.type == KEYDOWN and event.key == K_ESCAPE):
             pygame.quit()
