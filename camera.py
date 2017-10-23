@@ -124,6 +124,10 @@ def main():
             yaw -= 2
         if keys.get(K_RIGHT, False):
             yaw += 2
+        if keys.get(K_z, False):
+            roll -= 1
+        if keys.get(K_x, False):
+            roll += 1
         if keys.get(K_UP, False) and keys.get(K_LCTRL, False):
             fov -= 1
         elif keys.get(K_UP, False):
