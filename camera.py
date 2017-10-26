@@ -1,81 +1,15 @@
 # -*- coding: utf-8 -*-
 
+import math
 import numpy as np
-from time import sleep
 import pygame
 from pygame.locals import *
-import math
-from models import Box, Rectangle
 import sys
+from time import sleep
 
-def perspective_projection(fov, zNear, zFar, w, h):
-    ar = w / h
-    fov = np.radians(fov)
-    yscale = 1 / math.tan(fov / 2)
-    xscale = yscale / ar
-    a = zFar / (zFar - zNear)
-    b = - zNear * zFar / (zFar - zNear)
-    m = np.array([
-        [xscale,      0,  0,  0],
-        [0,      yscale,  0,  0],
-        [0,           0,  a,  1],
-        [0,           0,  b,  0]
-    ])
-    return m
+from models import Box, Rectangle
+from common import perspective_projection, rotation, scale, set_up_text, translation, viewport
 
-def rotation(angle_x, angle_y, angle_z):
-    angle_x = math.radians(angle_x)
-    m_x = np.array([
-        [1, 0, 0, 0],
-        [0, math.cos(angle_x), -math.sin(angle_x), 0],
-        [0, math.sin(angle_x), math.cos(angle_x), 0],
-        [0, 0, 0, 1]
-    ])
-
-    angle_y = math.radians(angle_y)
-    m_y = np.array([
-        [math.cos(angle_y), 0, math.sin(angle_y), 0],
-        [0, 1, 0, 0],
-        [-math.sin(angle_y), 0, math.cos(angle_y), 0],
-        [0, 0, 0, 1]
-    ])
-
-    angle_z = math.radians(angle_z)
-    m_z = np.array([
-        [math.cos(angle_z), -math.sin(angle_z), 0, 0],
-        [math.sin(angle_z), math.cos(angle_z), 0, 0],
-        [0, 0, 1, 0],
-        [0, 0, 0, 1]
-    ])
-    m_y = np.dot(m_z, m_y)
-    return np.dot(m_y, m_x)
-
-def scale(v):
-    m = np.array([
-        [v[0],    0,    0,    0],
-        [0,    v[1],    0,    0],
-        [0,       0, v[2],    0],
-        [0,       0,    0,    1]
-    ])
-    return m
-
-def viewport(x, y, n, f, w, h):
-    m = np.array([
-        [w/2, 0, 0, 0],
-        [0, -h/2, 0, 0],
-        [0, 0, f-n, 0],
-        [x + w/2, h/2 + y, n, 1]
-    ])
-    return m
-
-def translation(x, y, z=0):
-    m = np.array([
-        [1, 0, 0, 0],
-        [0, 1, 0, 0],
-        [0, 0, 1, 0],
-        [x, y, z, 1]
-    ])
-    return m
 
 def main():
     width = 900
@@ -121,9 +55,9 @@ def main():
         if keys.get(K_w, False):
             z_offset += 2
         if keys.get(K_LEFT, False):
-            yaw -= 2
+            yaw += 1
         if keys.get(K_RIGHT, False):
-            yaw += 2
+            yaw -= 1
         if keys.get(K_z, False):
             roll -= 1
         if keys.get(K_x, False):
@@ -136,39 +70,34 @@ def main():
             fov += 1
         elif keys.get(K_DOWN, False):
             pitch -= 2
+        text = set_up_text(fov, pitch, yaw, roll, x_offset, y_offset, z_offset)
+
         projection = perspective_projection(fov, 0.1, 100, width, height)
         t = translation(-x_offset, -y_offset, -z_offset)
         mat = t.dot(rotation(-pitch, -yaw, -roll))
         mat = mat.dot(projection)
         mat = mat.dot(vp)
 
-        font = pygame.font.SysFont("arial", 28)
-        text = font.render(
-            "FOV= {0}, Pitch= {1}, Yaw= {2}, Roll= {3}, X= {4}, Y={5}, Z={6}".format(
-                fov, pitch, yaw, roll, x_offset, y_offset, z_offset),
-            True,
-            (0, 128, 150)
-        )
-
         for box in (box1, box2, box3, box4, rect):
-            for edge in box.EDGES:
-                # transformation
-                p0 = box.POINTS[edge[0]].dot(mat)
-                p1 = box.POINTS[edge[1]].dot(mat)
-                # normalization
-                if p0[3] < epsilon or p1[3] < epsilon:
-                    continue
-                p0 = p0 / p0[3]
-                p1 = p1 / p1[3]
-                # drawing
-                pygame.draw.aaline(screen, color, (p0[0], p0[1]), (p1[0], p1[1]))
-                screen.blit(text, (420 - text.get_width() // 2, 10 - text.get_height() // 2))
+            for face in box.FACES:
+                for edge in face:
+                    # transformation
+                    p0 = box.POINTS[box.EDGES[edge][0]].dot(mat)
+                    p1 = box.POINTS[box.EDGES[edge][1]].dot(mat)
+                    # normalization
+                    if p0[3] < epsilon or p1[3] < epsilon:
+                        continue
+                    p0 = p0 / p0[3]
+                    p1 = p1 / p1[3]
+                    # drawing
+                    pygame.draw.aaline(screen, color, (p0[0], p0[1]), (p1[0], p1[1]))
+                    screen.blit(text, (420 - text.get_width() // 2, 10 - text.get_height() // 2))
         # exit
         if event.type == QUIT or (event.type == KEYDOWN and event.key == K_ESCAPE):
             pygame.quit()
             sys.exit()
         pygame.display.flip()
-        pygame.time.delay(25)
+        pygame.time.delay(15)
 
 
 if __name__ == "__main__":

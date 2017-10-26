@@ -31,6 +31,17 @@ class Box():
             (7, 3)
         ]
 
+        # indexes of edges in self.EDGES
+        self.FACES = [
+            [0, 1, 2, 3],
+            [1, 6, 7, 10],
+            [5, 7, 8, 9],
+            [4, 9, 11, 3],
+            [4, 5, 6, 0],
+            [2, 10, 8, 11]
+
+        ]
+
 class Rectangle():
     def __init__(self, x, z, a, b):
         self.POINTS = (
@@ -45,4 +56,8 @@ class Rectangle():
             (1, 2),
             (2, 3),
             (3, 0)
+        ]
+
+        self.FACES = [
+            [0, 1, 2, 3]
         ]
