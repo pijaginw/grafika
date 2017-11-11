@@ -82,3 +82,15 @@ def set_up_text(fov, pitch, yaw, roll, x_offset, y_offset, z_offset):
         (0, 128, 150)
     )
     return text
+
+
+def map_triangle_to_xy(triangle):
+    return (p[:2] for p in triangle)
+
+
+def subdivide_triangle(triangle):
+    p0 = (triangle[0] + triangle[1]) / 2
+    p1 = (triangle[1] + triangle[2]) / 2
+    p2 = (triangle[2] + triangle[0]) / 2
+
+    return (triangle[0], p0, p2), (triangle[1], p0, p1), (triangle[2], p1, p2), (p0, p1, p2)
