@@ -19,10 +19,11 @@ from common import (
 )
 
 
-STEP = 5
+STEP = 3
 
 def get_z(triangle):
-    return (triangle[0][2] + triangle[1][2] + triangle[2][2]) / 3
+    result = (triangle[0][2] + triangle[1][2] + triangle[2][2]) / 3
+    return result
 
 
 def main():
@@ -32,10 +33,10 @@ def main():
     pygame.init()
     screen = pygame.display.set_mode((width, height))
     color = (0.40, 0.40, 0/40)
-    box1 = Box(100, 10, 200, 80, 90, 3)
-    box2 = Box(-100, 10, 200, 85, 90, 3)
-    box3 = Box(100, 10, 300, 100, 100, 3)
-    box4 = Box(-100, 10, 300, 100, 130, 3)
+    box1 = Box(100, 10, 200, 80, 90, 2)
+    box2 = Box(-100, 10, 200, 85, 90, 2)
+    box3 = Box(100, 10, 300, 100, 100, 2)
+    box4 = Box(-100, 10, 300, 100, 130, 2)
     rect = Rectangle(0, 100, 80, 300, 3)
 
     roll = 0
@@ -111,16 +112,16 @@ def main():
 
         for p0, p1, p2 in sorted(transformed_triangles, key=get_z, reverse=True):
             # drawing
-            pygame.draw.polygon(screen, 0xFFFF66, [p0[:2], p1[:2], p2[:2]])
-            pygame.draw.aalines(screen, (0, 255, 0), True, [p0[:2], p1[:2], p2[:2]], 0)
-            screen.blit(text, (420 - text.get_width() // 2, 10 - text.get_height() // 2))
+            pygame.draw.polygon(screen, 0xabcaf4, [p0[:2], p1[:2], p2[:2]])
+            pygame.draw.aalines(screen, (0, 0, 0), True, [p0[:2], p1[:2], p2[:2]], 1)
+            # screen.blit(text, (420 - text.get_width() // 2, 10 - text.get_height() // 2))
 
         # exit
         if event.type == QUIT or (event.type == KEYDOWN and event.key == K_ESCAPE):
             pygame.quit()
             sys.exit()
         pygame.display.flip()
-        pygame.time.delay(15)
+        # pygame.time.delay(15)
 
 
 if __name__ == "__main__":
